@@ -12,24 +12,24 @@ def newUser(username, password):
 	if query.get() != None:
 		return None
 	else:
+		password = sha256(password+keyword).hexdigest()
 		user = User(user = username, password = password)
 		user = user.put()
 		user_id = user.id()
 		#TODO: Return cookie
 		return createUserHash(user_id)
 
-#def make_salt():
-#    return ''.join(random.choice(string.letters) for x in xrange(5))
 
-
-#def createHash(username, password, salt=None):
-#	if salt = None:
-#		salt = make_salt()
-#	h = sha256(username+password+salt).hexdigest()
-#	return '%s,%s' %(h, salt)
-#def validateHash(username, password, h):
-#	salt = h.split(',')[1]
-#    return h == make_pw_hash(name, pw, salt)
+def validate_password(username, password):
+	password = sha256(password+keyword).hexdigest()
+	query = User.all().filter("user =", username)
+	user = query.get()
+	if user == None:
+		return None
+	elif user.password != password:
+		return False
+	else:
+		return createUserHash(user.key().id())
 
 def createUserHash(user_id):
 	return str(user_id)+'|' + sha256(str(user_id) + keyword).hexdigest()

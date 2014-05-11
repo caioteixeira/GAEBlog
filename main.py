@@ -111,7 +111,7 @@ class SignUpHandler(Handler):
 				self.render_front(username, password, verify, email, vUsername, vPassword, vEmail, vVerify)
 			else:
 				self.response.headers.add_header('Set-Cookie', "user_id=%s; Path=/" % validate)
-				self.redirect("/blog/welcome")
+				self.redirect("/welcome")
 		else:
 			self.render_front(username, password, verify, email, vUsername, vPassword, vEmail, vVerify)
 
@@ -125,9 +125,32 @@ class WelcomeHandler(Handler):
 			self.redirect("/signup")
 	def get(self):
 		self.render_front()
+
+class LoginHandler(Handler):
+	def render_front(self, username = "", error=""):
+		self.render("login.html", user = username, error = error)
+		
+	def get(self):
+		self.render_front()
+	def post(self):
+		username = self.request.get("username")
+		password = self.request.get("password")
+		validate = user.validate_password(username, password)
+		if validate == None:
+			self.render_front(username, "Invalid username!")
+		elif validate == False:
+			self.render_front(username, "Invalid password!")
+		else:
+			self.response.headers.add_header('Set-Cookie', "user_id=%s; Path=/" % validate)
+			self.redirect("/welcome")
+			
+class LogoutHandler(Handler):
+	def get(self):
+		self.response.headers.add_header('Set-Cookie', "user_id=; Path=/")
+		self.redirect("/signup")
 		
 
 #Handlers
 #The last handler uses regex to find the post id in the url.
-app = webapp2.WSGIApplication([('/', MainPage),('/blog', MainPage), ('/signup', SignUpHandler),('/blog/signup', SignUpHandler) 
-	,('/welcome', WelcomeHandler)  , ('/blog/welcome', WelcomeHandler),('/newpost', NewPost), ('/blog/newpost', NewPost) ,(r'/(\d+)', PostHandler)], debug=True)
+app = webapp2.WSGIApplication([('/', MainPage), ('/signup', SignUpHandler), ('/logout', LogoutHandler)
+	,('/welcome', WelcomeHandler)  , ('/login', LoginHandler),('/newpost', NewPost), ('/blog/newpost', NewPost) ,(r'/(\d+)', PostHandler)], debug=True)
